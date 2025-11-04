@@ -1,14 +1,21 @@
-from typing import Optional
-
 from fastapi import FastAPI
+from pymongo import MongoClient
+import os
 
 app = FastAPI()
 
+# Atlas 接続
+client = MongoClient(os.getenv("MONGO_URI"), tls=True)
+db = client[os.getenv("MONGO_DB")]
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def root():
+    return {"message": "FastAPI Render Server is running"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/ping")
+def ping():
+    try:
+        db.command("ping")
+        return {"status": "ok", "message": "Connected to Atlas"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
